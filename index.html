@@ -1,133 +1,346 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | 260929_test</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-  </head>
-  <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unity Gallery | 260929_test</title>
+  <meta name="description" content="브라우저에서 바로 즐기는 Unity WebGL 작품 갤러리">
+  <meta property="og:title" content="Unity Gallery">
+  <meta property="og:description" content="브라우저에서 바로 즐기는 Unity WebGL 작품 갤러리">
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --surface: #141822;
+      --surface-2: #1b2130;
+      --line: rgba(255,255,255,.08);
+      --text: #e9ecf3;
+      --muted: #8b93a7;
+      --accent: #6c8cff;
+      --accent-2: #b46cff;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(60% 50% at 15% 0%, rgba(108,140,255,.16), transparent 70%),
+        radial-gradient(50% 40% at 90% 10%, rgba(180,108,255,.12), transparent 70%);
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: min(1180px, 100% - 32px); margin-inline: auto; }
+
+    /* Header */
+    header.site {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(11,13,18,.7);
+      border-bottom: 1px solid var(--line);
+    }
+    header.site .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.02em; font-size: 18px; }
+    .brand .logo {
+      width: 30px; height: 30px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid; place-items: center; font-size: 15px;
+    }
+    nav.main { display: flex; gap: 6px; }
+    nav.main a { padding: 8px 14px; border-radius: 999px; color: var(--muted); font-size: 14px; transition: .2s; }
+    nav.main a:hover { color: var(--text); background: var(--surface-2); }
+
+    /* Hero */
+    .hero { padding: 56px 0 28px; text-align: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--line);
+      color: var(--muted); font-size: 13px;
+    }
+    .eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: #3ddc97; box-shadow: 0 0 10px #3ddc97; }
+    .hero h1 { font-size: clamp(32px, 6vw, 60px); line-height: 1.12; letter-spacing: -.03em; margin: 18px 0 14px; }
+    .hero h1 span { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p { color: var(--muted); font-size: clamp(15px, 2vw, 18px); max-width: 560px; margin-inline: auto; }
+
+    /* Player */
+    .stage { padding: 24px 0 56px; }
+    .frame {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 14px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(108,140,255,.06);
+    }
+    .frame-bar { display: flex; align-items: center; justify-content: space-between; padding: 2px 8px 12px; gap: 12px; }
+    .dots { display: flex; gap: 7px; }
+    .dots b { width: 11px; height: 11px; border-radius: 50%; background: #2b3244; }
+    .dots b:nth-child(1) { background: #ff5f57; } .dots b:nth-child(2) { background: #febc2e; } .dots b:nth-child(3) { background: #28c840; }
+    .frame-title { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tools { display: flex; gap: 8px; }
+    .btn {
+      appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--text);
+      padding: 7px 14px; border-radius: 10px; font: inherit; font-size: 13px; cursor: pointer; transition: .2s;
+    }
+    .btn:hover { border-color: var(--accent); background: #222a3d; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: 0; font-weight: 600; }
+
+    .screen {
+      position: relative; width: 100%; aspect-ratio: 16 / 10;
+      background: #000; border-radius: 12px; overflow: hidden;
+    }
+    #unity-canvas { width: 100%; height: 100%; display: block; background: #000; outline: none; }
+
+    #unity-loading-bar {
+      position: absolute; inset: 0; display: none;
+      flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+      background: radial-gradient(circle at 50% 40%, #171d2e, #07080c);
+    }
+    .spinner {
+      width: 54px; height: 54px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,.1); border-top-color: var(--accent);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress { width: min(320px, 70%); height: 6px; border-radius: 6px; background: rgba(255,255,255,.1); overflow: hidden; }
+    #unity-progress-bar-full { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .2s; }
+    #unity-loading-text { font-size: 13px; color: var(--muted); }
+
+    #unity-warning { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); width: min(90%, 520px); z-index: 5; display: none; font-size: 13px; }
+    #unity-warning > div { border-radius: 8px; color: #111; }
+
+    /* Info */
+    .info { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; margin-top: 22px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+    .card h2 { font-size: 20px; letter-spacing: -.02em; margin-bottom: 10px; }
+    .card p { color: var(--muted); font-size: 15px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .tag { font-size: 12px; padding: 4px 11px; border-radius: 999px; background: var(--surface-2); color: #b8c0d6; border: 1px solid var(--line); }
+    dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; font-size: 14px; }
+    dt { color: var(--muted); } dd { text-align: right; }
+    .controls { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+    kbd { background: var(--surface-2); border: 1px solid var(--line); border-bottom-width: 2px; padding: 1px 7px; border-radius: 6px; font: 12px ui-monospace, monospace; color: var(--text); }
+
+    /* Gallery */
+    section.works { padding: 24px 0 72px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; margin-bottom: 22px; }
+    .section-head h2 { font-size: 28px; letter-spacing: -.03em; }
+    .section-head span { color: var(--muted); font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .work { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; transition: transform .25s, border-color .25s; }
+    .work:hover { transform: translateY(-4px); border-color: rgba(108,140,255,.5); }
+    .thumb { aspect-ratio: 16 / 10; display: grid; place-items: center; font-size: 42px; position: relative; }
+    .work:nth-child(1) .thumb { background: linear-gradient(135deg, #2b3a7a, #6c8cff); }
+    .work:nth-child(2) .thumb { background: linear-gradient(135deg, #5b2b7a, #b46cff); }
+    .work:nth-child(3) .thumb { background: linear-gradient(135deg, #7a2b4a, #ff6c8c); }
+    .work:nth-child(4) .thumb { background: linear-gradient(135deg, #1f6b5a, #3ddc97); }
+    .badge { position: absolute; top: 12px; left: 12px; font-size: 11px; padding: 3px 10px; border-radius: 999px; background: rgba(0,0,0,.45); backdrop-filter: blur(6px); }
+    .work .meta { padding: 16px 18px 18px; }
+    .work h3 { font-size: 16px; letter-spacing: -.01em; }
+    .work p { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .work.soon { opacity: .7; }
+
+    footer.site { border-top: 1px solid var(--line); padding: 32px 0 44px; color: var(--muted); font-size: 13px; }
+    footer.site .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+    @media (max-width: 800px) {
+      .info { grid-template-columns: 1fr; }
+      nav.main { display: none; }
+      .frame { padding: 8px; border-radius: 16px; }
+      .screen { aspect-ratio: 4 / 3; }
+      .frame-title { display: none; }
+    }
+    :fullscreen .screen, .screen:fullscreen { border-radius: 0; }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="#top"><span class="logo">◆</span> Unity Gallery</a>
+      <nav class="main">
+        <a href="#play">플레이</a>
+        <a href="#about">작품 소개</a>
+        <a href="#works">전시 작품</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><i></i> 설치 없이 브라우저에서 바로 실행</span>
+        <h1>Unity로 만든 작품을<br><span>웹에서 만나보세요</span></h1>
+        <p>WebGL로 빌드된 인터랙티브 콘텐츠를 모아둔 갤러리입니다. 아래에서 지금 바로 플레이할 수 있어요.</p>
+      </div>
+    </section>
+
+    <section class="stage" id="play">
+      <div class="wrap">
+        <div class="frame">
+          <div class="frame-bar">
+            <div class="dots"><b></b><b></b><b></b></div>
+            <div class="frame-title">260929_test — Unity WebGL</div>
+            <div class="tools">
+              <button class="btn" id="reload-button" type="button">↻ 다시 시작</button>
+              <button class="btn primary" id="unity-fullscreen-button" type="button">⛶ 전체화면</button>
+            </div>
+          </div>
+          <div class="screen" id="unity-container">
+            <canvas id="unity-canvas" tabindex="-1"></canvas>
+            <div id="unity-loading-bar">
+              <div class="spinner"></div>
+              <div class="progress"><div id="unity-progress-bar-full"></div></div>
+              <div id="unity-loading-text">불러오는 중… 0%</div>
+            </div>
+            <div id="unity-warning"></div>
+          </div>
+        </div>
+
+        <div class="info" id="about">
+          <div class="card">
+            <h2>260929_test</h2>
+            <p>Unity로 제작한 WebGL 테스트 빌드입니다. 첫 실행 시 리소스(약 25MB)를 내려받기 때문에 로딩에 시간이 조금 걸릴 수 있어요. 최신 Chrome, Edge, Safari, Firefox에서 동작합니다.</p>
+            <div class="tags">
+              <span class="tag">Unity</span><span class="tag">WebGL</span><span class="tag">WebAssembly</span><span class="tag">Brotli</span>
+            </div>
+            <div class="controls">조작: 마우스 / 터치 · 전체화면은 <kbd>ESC</kbd> 로 종료</div>
+          </div>
+          <div class="card">
+            <h2>작품 정보</h2>
+            <dl>
+              <dt>제목</dt><dd>260929_test</dd>
+              <dt>버전</dt><dd>0.1.0</dd>
+              <dt>제작</dt><dd>DefaultCompany</dd>
+              <dt>플랫폼</dt><dd>WebGL</dd>
+            </dl>
+          </div>
         </div>
       </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">260929_test</div>
+    </section>
+
+    <section class="works" id="works">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>전시 작품</h2>
+          <span>총 4개 · 1개 공개 중</span>
+        </div>
+        <div class="grid">
+          <a class="work" href="#play">
+            <div class="thumb">🎮<span class="badge">지금 플레이</span></div>
+            <div class="meta"><h3>260929_test</h3><p>Unity WebGL · v0.1.0</p></div>
+          </a>
+          <div class="work soon">
+            <div class="thumb">🚀<span class="badge">Coming soon</span></div>
+            <div class="meta"><h3>다음 작품</h3><p>준비 중입니다</p></div>
+          </div>
+          <div class="work soon">
+            <div class="thumb">🧩<span class="badge">Coming soon</span></div>
+            <div class="meta"><h3>다음 작품</h3><p>준비 중입니다</p></div>
+          </div>
+          <div class="work soon">
+            <div class="thumb">🌌<span class="badge">Coming soon</span></div>
+            <div class="meta"><h3>다음 작품</h3><p>준비 중입니다</p></div>
+          </div>
+        </div>
       </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>© 2026 Unity Gallery</span>
+      <span>Made with Unity WebGL</span>
     </div>
-    <script>
-      var canvas = document.querySelector("#unity-canvas");
+  </footer>
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
+  <script>
+    var canvas = document.querySelector("#unity-canvas");
+    var screenEl = document.querySelector("#unity-container");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressFull = document.querySelector("#unity-progress-bar-full");
+    var loadingText = document.querySelector("#unity-loading-text");
+    var unityInstance = null;
+
+    function unityShowBanner(msg, type) {
+      var warningBanner = document.querySelector("#unity-warning");
+      function updateBannerVisibility() {
+        warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
       }
-
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/Build.loader.js";
-      var config = {
-        arguments: [],
-        dataUrl: buildUrl + "/Build.data.br",
-        frameworkUrl: buildUrl + "/Build.framework.js.br",
-        codeUrl: buildUrl + "/Build.wasm.br",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "260929_test",
-        productVersion: "0.1.0",
-        showBanner: unityShowBanner,
-        // errorHandler: function(err, url, line) {
-        //    alert("error " + err + " occurred at line " + line);
-        //    // Return 'true' if you handled this error and don't want Unity
-        //    // to process it further, 'false' otherwise.
-        //    return true;
-        // },
-      };
-
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
+      var div = document.createElement('div');
+      div.innerHTML = msg;
+      warningBanner.appendChild(div);
+      if (type == 'error') div.style = 'background: #ff5f57; padding: 10px;';
+      else {
+        if (type == 'warning') div.style = 'background: #febc2e; padding: 10px;';
+        setTimeout(function () {
+          warningBanner.removeChild(div);
+          updateBannerVisibility();
+        }, 5000);
       }
+      updateBannerVisibility();
+    }
 
-      document.querySelector("#unity-loading-bar").style.display = "block";
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/Build.loader.js";
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + "/Build.data.br",
+      frameworkUrl: buildUrl + "/Build.framework.js.br",
+      codeUrl: buildUrl + "/Build.wasm.br",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "260929_test",
+      productVersion: "0.1.0",
+      showBanner: unityShowBanner,
+    };
+
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      // 모바일: 해상도를 낮춰 성능 확보
+      config.devicePixelRatio = 1;
+    }
+
+    function loadUnity() {
+      loadingBar.style.display = "flex";
+      progressFull.style.width = "0%";
+      loadingText.textContent = "불러오는 중… 0%";
 
       var script = document.createElement("script");
       script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-
-              }).catch((message) => {
-                alert(message);
-              });
-            };
-
+      script.onload = function () {
+        createUnityInstance(canvas, config, function (progress) {
+          var pct = Math.round(progress * 100);
+          progressFull.style.width = pct + "%";
+          loadingText.textContent = "불러오는 중… " + pct + "%";
+        }).then(function (instance) {
+          unityInstance = instance;
+          loadingBar.style.display = "none";
+        }).catch(function (message) {
+          loadingText.textContent = "실행에 실패했습니다: " + message;
+        });
+      };
+      script.onerror = function () {
+        loadingText.textContent = "로더를 불러오지 못했습니다.";
+      };
       document.body.appendChild(script);
+    }
 
-    </script>
-  </body>
+    document.querySelector("#unity-fullscreen-button").onclick = function () {
+      if (unityInstance) unityInstance.SetFullscreen(1);
+    };
+
+    document.querySelector("#reload-button").onclick = function () {
+      // WebGL 인스턴스는 완전한 재초기화가 안전하므로 페이지를 새로 고침
+      location.reload();
+    };
+
+    loadUnity();
+  </script>
+</body>
 </html>
